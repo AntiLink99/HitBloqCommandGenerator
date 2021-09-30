@@ -38,7 +38,6 @@ namespace HitBloqCommandGenerator
                 }
             }
             mapList.EndUpdate();
-            mapLinksInput.Text = "";
             fetchSongsButton.Enabled = mapKeyList.Count > 0;
         }
 
