@@ -281,6 +281,8 @@ namespace HitBloqCommandGenerator
             selections.Add(currentSelection);
 
             // show new map
+            comboBox1.SelectedIndex = 0;
+            characteristicIndex = 0;
             if (selectionIndex < mapData.Count - 1)
             {
                 currentSelection = getInitialSelectionFromMapData(mapData[selectionIndex]);
@@ -291,8 +293,6 @@ namespace HitBloqCommandGenerator
                 {
                     comboBox1.Items.Add(characteristic.name);
                 });
-                comboBox1.SelectedIndex = 0;
-                characteristicIndex = 0;
 
                 reset();
                 return;
