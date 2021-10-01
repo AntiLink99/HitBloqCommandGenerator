@@ -19,15 +19,50 @@ namespace HitBloqCommandGenerator
         public virtual string hash { get; set; }
         public virtual List<MapDiff> diffs { get; set; }
 
-        public bool hasDiff(string diffName)
+        public List<MapCharacteristic> getDiffsByCharacteristic()
         {
-            List<MapDiff> diffsWithName = diffs.FindAll(diff => diff.difficulty.Equals(diffName));
-            return diffsWithName.Count > 0;
+            Dictionary<string, MapCharacteristic> diffsByCharacteristic = new Dictionary<string, MapCharacteristic>();
+
+            foreach (MapDiff diff in diffs)
+            {
+                if (diffsByCharacteristic.ContainsKey(diff.characteristic))
+                {
+                    diffsByCharacteristic[diff.characteristic].diffs.Add(diff);
+                } else
+                {
+                    MapCharacteristic newCharacteristic = new MapCharacteristic();
+                    newCharacteristic.name = diff.characteristic;
+                    newCharacteristic.diffs.Add(diff);
+                    diffsByCharacteristic.Add(diff.characteristic, newCharacteristic);
+                }
+            }
+
+            List<MapCharacteristic> values = new List<MapCharacteristic>(); // No idea how to do it better
+            foreach (KeyValuePair<string, MapCharacteristic> entry in diffsByCharacteristic)
+            {
+                System.Diagnostics.Debug.WriteLine(entry.Value.name);
+                values.Add(entry.Value);
+            }
+            return values;
         }
     }
 
     public class MapDiff
     {
+        public virtual string characteristic { get; set; }
         public virtual string difficulty { get; set; }
+    }
+
+    public class MapCharacteristic
+    {
+        public virtual string name { get; set; }
+
+        public List<MapDiff> diffs = new List<MapDiff>();
+
+        public bool hasDiff(string diffName)
+        {
+            List<MapDiff> diffsWithName = diffs.FindAll(diff => diff.difficulty.Equals(diffName));
+            return diffsWithName.Count > 0;
+        }
     }
 }

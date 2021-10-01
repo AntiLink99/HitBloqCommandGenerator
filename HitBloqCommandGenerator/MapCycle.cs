@@ -23,8 +23,12 @@ namespace HitBloqCommandGenerator
         private NumericUpDown numericUpDown3;
         private NumericUpDown numericUpDown4;
         private NumericUpDown numericUpDown5;
-        private ProgressBar progressBar1;
+
+        private ComboBox comboBox1;
+        private Label label3;
         int selectionIndex = 0;
+        int characteristicIndex = 0;
+        MapSelection currentSelection;
 
         public MapCycle(List<MapData> mapData)
         {
@@ -49,6 +53,8 @@ namespace HitBloqCommandGenerator
             this.numericUpDown3 = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown4 = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown5 = new System.Windows.Forms.NumericUpDown();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.label3 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).BeginInit();
@@ -164,7 +170,7 @@ namespace HitBloqCommandGenerator
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label2.Location = new System.Drawing.Point(27, 124);
+            this.label2.Location = new System.Drawing.Point(27, 125);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(56, 25);
             this.label2.TabIndex = 8;
@@ -215,9 +221,30 @@ namespace HitBloqCommandGenerator
             this.numericUpDown5.TabIndex = 9;
             this.numericUpDown5.Visible = false;
             // 
+            // comboBox1
+            // 
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Location = new System.Drawing.Point(375, 153);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(151, 28);
+            this.comboBox1.TabIndex = 10;
+            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.label3.Location = new System.Drawing.Point(375, 125);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(131, 25);
+            this.label3.TabIndex = 8;
+            this.label3.Text = "Characteristic:";
+            // 
             // MapCycle
             // 
             this.ClientSize = new System.Drawing.Size(549, 394);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.numericUpDown5);
             this.Controls.Add(this.numericUpDown4);
             this.Controls.Add(this.numericUpDown3);
@@ -249,37 +276,25 @@ namespace HitBloqCommandGenerator
         private void button1_Click(object sender, EventArgs e)
         {
             // store map
-            MapSelection selection = new MapSelection();
-            selection.hash = mapData[selectionIndex].versions[0].hash;
-
-            selection.easy = checkBox1.Checked;
-            selection.normal = checkBox2.Checked;
-            selection.hard = checkBox3.Checked;
-            selection.expert = checkBox4.Checked;
-            selection.expertPlus = checkBox5.Checked;
-
-            selection.starsEasy = numericUpDown5.Value;
-            selection.starsNormal = numericUpDown4.Value;
-            selection.starsHard = numericUpDown3.Value;
-            selection.starsExpert = numericUpDown2.Value;
-            selection.starsExpertPlus = numericUpDown1.Value;
-            selections.Add(selection);
+            currentSelection.hash = mapData[selectionIndex].versions[0].hash;
+            storeCurrentCharacteristicState();
+            selections.Add(currentSelection);
 
             // show new map
             if (selectionIndex < mapData.Count - 1)
             {
+                currentSelection = getInitialSelectionFromMapData(mapData[selectionIndex]);
                 selectionIndex++;
                 showMap(mapData[selectionIndex]);
-                checkBox1.Checked = false;
-                checkBox2.Checked = false;
-                checkBox3.Checked = false;
-                checkBox4.Checked = false;
-                checkBox5.Checked = false;
-                numericUpDown1.Value = 0;
-                numericUpDown2.Value = 0;
-                numericUpDown3.Value = 0;
-                numericUpDown4.Value = 0;
-                numericUpDown5.Value = 0;
+                comboBox1.Items.Clear();
+                mapData[selectionIndex].versions[0].getDiffsByCharacteristic().ForEach(characteristic =>
+                {
+                    comboBox1.Items.Add(characteristic.name);
+                });
+                comboBox1.SelectedIndex = 0;
+                characteristicIndex = 0;
+
+                reset();
                 return;
             }
 
@@ -290,7 +305,28 @@ namespace HitBloqCommandGenerator
 
         private void MapCycle_Load(object sender, EventArgs e)
         {
+            mapData[0].versions[0].getDiffsByCharacteristic().ForEach(characteristic =>
+            {
+                comboBox1.Items.Add(characteristic.name);
+            });
+            comboBox1.SelectedIndex = 0;
+
+            currentSelection = getInitialSelectionFromMapData(mapData[0]);
             showMap(mapData[0]);
+        }
+
+        private MapSelection getInitialSelectionFromMapData(MapData data)
+        {
+            MapSelection initialSelection = new MapSelection();
+            data.versions[0].getDiffsByCharacteristic()
+                .ConvertAll(diff => diff.name)
+                .ForEach(characteristicName =>
+            {
+                MapSelectionCharacteristic mapSelectionCharacteristic = new MapSelectionCharacteristic();
+                mapSelectionCharacteristic.name = characteristicName;
+                initialSelection.characteristics.Add(mapSelectionCharacteristic);
+            });
+            return initialSelection;
         }
 
         private void showMap(MapData map)
@@ -298,31 +334,28 @@ namespace HitBloqCommandGenerator
             linkLabel1.Text = map.name;
             linkLabel1.Links.Clear();
             linkLabel1.Links.Add(0, map.name.Length, "https://beatsaver.com/maps/" + map.id);
-            checkBox1.Visible = false;
-            checkBox2.Visible = false;
-            checkBox3.Visible = false;
-            checkBox4.Visible = false;
-            checkBox5.Visible = false;
-            if (map.versions[0].hasDiff("Easy"))
-            {
-                checkBox1.Visible = true;
-            }
-            if (map.versions[0].hasDiff("Normal"))
-            {
-                checkBox2.Visible = true;
-            }
-            if (map.versions[0].hasDiff("Hard"))
-            {
-                checkBox3.Visible = true;
-            }
-            if (map.versions[0].hasDiff("Expert"))
-            {
-                checkBox4.Visible = true;
-            }
-            if (map.versions[0].hasDiff("ExpertPlus"))
-            {
-                checkBox5.Visible = true;
-            }
+
+            List<MapCharacteristic> diffsByCharacteristic = map.versions[0].getDiffsByCharacteristic();
+            checkBox1.Visible = diffsByCharacteristic[characteristicIndex].hasDiff("Easy");
+            checkBox2.Visible = diffsByCharacteristic[characteristicIndex].hasDiff("Normal");
+            checkBox3.Visible = diffsByCharacteristic[characteristicIndex].hasDiff("Hard");
+            checkBox4.Visible = diffsByCharacteristic[characteristicIndex].hasDiff("Expert");
+            checkBox5.Visible = diffsByCharacteristic[characteristicIndex].hasDiff("ExpertPlus");
+
+            //RESTORE DATA FROM CHARACTERISTIC
+            MapSelectionCharacteristic characteristic = currentSelection.characteristics[characteristicIndex];
+            checkBox1.Checked = characteristic.easy;
+            checkBox2.Checked = characteristic.normal;
+            checkBox3.Checked = characteristic.hard;
+            checkBox4.Checked = characteristic.expert;
+            checkBox5.Checked = characteristic.expertPlus;
+
+            numericUpDown5.Value = characteristic.starsEasy;
+            numericUpDown4.Value = characteristic.starsNormal;
+            numericUpDown3.Value = characteristic.starsHard;
+            numericUpDown2.Value = characteristic.starsExpert;
+            numericUpDown1.Value = characteristic.starsExpertPlus;
+
             button2.Text = selectionIndex == mapData.Count - 1 ? "Show Commands" : "Next Map";
         }
 
@@ -349,6 +382,7 @@ namespace HitBloqCommandGenerator
 
         private void checkBox5_CheckedChanged(object sender, EventArgs e)
         {
+            //Für jede Änderung MapData verändenr
             numericUpDown1.Visible = checkBox5.Checked;
         }
 
@@ -370,6 +404,52 @@ namespace HitBloqCommandGenerator
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             numericUpDown5.Visible = checkBox1.Checked;
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (currentSelection != null)
+            {
+                //STORE DATA
+                storeCurrentCharacteristicState();
+
+                //UPDATE INDEX
+                characteristicIndex = comboBox1.SelectedIndex;
+
+                //UPDATE DATA WITH NEW INDEX
+                showMap(mapData[selectionIndex]);
+            }
+        }
+
+        private void storeCurrentCharacteristicState()
+        {
+            MapSelectionCharacteristic characteristic = currentSelection.characteristics[characteristicIndex];
+            characteristic.easy = checkBox1.Checked;
+            characteristic.normal = checkBox2.Checked;
+            characteristic.hard = checkBox3.Checked;
+            characteristic.expert = checkBox4.Checked;
+            characteristic.expertPlus = checkBox5.Checked;
+
+            characteristic.starsEasy = numericUpDown5.Value;
+            characteristic.starsNormal = numericUpDown4.Value;
+            characteristic.starsHard = numericUpDown3.Value;
+            characteristic.starsExpert = numericUpDown2.Value;
+            characteristic.starsExpertPlus = numericUpDown1.Value;
+            currentSelection.characteristics[characteristicIndex] = characteristic;
+        }
+
+        private void reset()
+        {
+            checkBox1.Checked = false;
+            checkBox2.Checked = false;
+            checkBox3.Checked = false;
+            checkBox4.Checked = false;
+            checkBox5.Checked = false;
+            numericUpDown1.Value = 0;
+            numericUpDown2.Value = 0;
+            numericUpDown3.Value = 0;
+            numericUpDown4.Value = 0;
+            numericUpDown5.Value = 0;
         }
     }
 }

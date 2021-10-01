@@ -85,59 +85,62 @@ namespace HitBloqCommandGenerator
         private string getCommandsFromSelection(MapSelection selection, string poolName)
         {
             string result = "\n";
+            string hash = selection.hash;
             //Ranking
-            if (selection.easy)
-            {
-                result += "!rank " + getMapIdentifier(selection, "Easy", poolName) + "\r\n";
-            }
-            if (selection.normal)
-            {
-                result += "!rank " + getMapIdentifier(selection, "Normal", poolName) + "\r\n";
-            }
-            if (selection.hard)
-            {
-                result += "!rank " + getMapIdentifier(selection, "Hard", poolName) + "\r\n";
-            }
-            if (selection.expert)
-            {
-                result += "!rank " + getMapIdentifier(selection, "Expert", poolName) + "\r\n";
-            }
-            if (selection.expertPlus)
-            {
-                result += "!rank " + getMapIdentifier(selection, "ExpertPlus", poolName) + "\r\n";
-            }
+            foreach (MapSelectionCharacteristic characteristic in selection.characteristics) {
+                if (characteristic.easy)
+                {
+                    result += "!rank " + getMapIdentifier(hash, characteristic, "Easy", poolName) + "\r\n";
+                }
+                if (characteristic.normal)
+                {
+                    result += "!rank " + getMapIdentifier(hash, characteristic, "Normal", poolName) + "\r\n";
+                }
+                if (characteristic.hard)
+                {
+                    result += "!rank " + getMapIdentifier(hash, characteristic, "Hard", poolName) + "\r\n";
+                }
+                if (characteristic.expert)
+                {
+                    result += "!rank " + getMapIdentifier(hash, characteristic, "Expert", poolName) + "\r\n";
+                }
+                if (characteristic.expertPlus)
+                {
+                    result += "!rank " + getMapIdentifier(hash, characteristic, "ExpertPlus", poolName) + "\r\n";
+                }
 
-            //Stars
-            if (selection.starsEasy != 0)
-            {
-                result += "!set_manual " + getMapIdentifier(selection, "Easy", poolName) + " " + parseDecimal(selection.starsEasy) + "\r\n";
-            }
-            if (selection.starsNormal != 0)
-            {
-                result += "!set_manual " + getMapIdentifier(selection, "Normal", poolName) + " " + parseDecimal(selection.starsNormal) + "\r\n";
-            }
-            if (selection.starsHard != 0)
-            {
-                result += "!set_manual " + getMapIdentifier(selection, "Hard", poolName) + " " + parseDecimal(selection.starsHard) + "\r\n";
-            }
-            if (selection.starsExpert != 0)
-            {
-                result += "!set_manual " + getMapIdentifier(selection, "Expert", poolName) + " " + parseDecimal(selection.starsExpert) + "\r\n";
-            }
-            if (selection.starsExpertPlus != 0)
-            {
-                result += "!set_manual " + getMapIdentifier(selection, "ExpertPlus", poolName) + " " + parseDecimal(selection.starsExpertPlus) + "\r\n";
+                //Stars
+                if (characteristic.starsEasy != 0)
+                {
+                    result += "!set_manual " + getMapIdentifier(hash, characteristic, "Easy", poolName) + " " + parseDecimal(characteristic.starsEasy) + "\r\n";
+                }
+                if (characteristic.starsNormal != 0)
+                {
+                    result += "!set_manual " + getMapIdentifier(hash, characteristic, "Normal", poolName) + " " + parseDecimal(characteristic.starsNormal) + "\r\n";
+                }
+                if (characteristic.starsHard != 0)
+                {
+                    result += "!set_manual " + getMapIdentifier(hash, characteristic, "Hard", poolName) + " " + parseDecimal(characteristic.starsHard) + "\r\n";
+                }
+                if (characteristic.starsExpert != 0)
+                {
+                    result += "!set_manual " + getMapIdentifier(hash, characteristic, "Expert", poolName) + " " + parseDecimal(characteristic.starsExpert) + "\r\n";
+                }
+                if (characteristic.starsExpertPlus != 0)
+                {
+                    result += "!set_manual " + getMapIdentifier(hash, characteristic, "ExpertPlus", poolName) + " " + parseDecimal(characteristic.starsExpertPlus) + "\r\n";
+                }
             }
             return result;
         }
 
-        private string getMapIdentifier(MapSelection selection, string diff, string poolName)
+        private string getMapIdentifier(string hash, MapSelectionCharacteristic characteristic, string diff, string poolName)
         {
             if (poolName.Equals(""))
             {
                 poolName = "<MAP_POOL>";
             }
-            return selection.hash.ToUpper() + "|_" + diff + "_SoloStandard " + poolName;
+            return hash.ToUpper() + "|_" + diff + "_Solo" + characteristic.name + " " + poolName;
         }
 
         private string parseDecimal(decimal dec)
