@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BeatSaberPlaylistsLib.Types;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
@@ -16,6 +17,7 @@ namespace HitBloqCommandGenerator
         private CheckBox checkBox5;
         private Button button2;
         List<MapData> mapData;
+        Dictionary<string, List<Difficulty>> highlightedDifficultyData;
         List<MapSelection> selections = new List<MapSelection>();
         private Label label2;
         private NumericUpDown numericUpDown1;
@@ -28,12 +30,14 @@ namespace HitBloqCommandGenerator
         private Label label3;
         int selectionIndex = 0;
         int characteristicIndex = 0;
+        private Label labelMapHash;
         MapSelection currentSelection;
 
-        public MapCycle(List<MapData> mapData)
+        public MapCycle(List<MapData> mapData, Dictionary<string, List<Difficulty>> highlightedDifficultyData)
         {
             InitializeComponent();
             this.mapData = mapData;
+            this.highlightedDifficultyData = highlightedDifficultyData;
         }
 
         private void InitializeComponent()
@@ -55,6 +59,7 @@ namespace HitBloqCommandGenerator
             this.numericUpDown5 = new System.Windows.Forms.NumericUpDown();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.labelMapHash = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).BeginInit();
@@ -65,10 +70,11 @@ namespace HitBloqCommandGenerator
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.label1.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.label1.ForeColor = System.Drawing.Color.White;
             this.label1.Location = new System.Drawing.Point(27, 19);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(154, 32);
+            this.label1.Size = new System.Drawing.Size(166, 32);
             this.label1.TabIndex = 5;
             this.label1.Text = "Current Map:";
             // 
@@ -76,6 +82,7 @@ namespace HitBloqCommandGenerator
             // 
             this.linkLabel1.AutoSize = true;
             this.linkLabel1.Font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.linkLabel1.LinkColor = System.Drawing.Color.DeepSkyBlue;
             this.linkLabel1.Location = new System.Drawing.Point(27, 67);
             this.linkLabel1.Name = "linkLabel1";
             this.linkLabel1.Size = new System.Drawing.Size(68, 35);
@@ -88,7 +95,7 @@ namespace HitBloqCommandGenerator
             // 
             this.checkBox1.AutoSize = true;
             this.checkBox1.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.checkBox1.ForeColor = System.Drawing.Color.Green;
+            this.checkBox1.ForeColor = System.Drawing.Color.SpringGreen;
             this.checkBox1.Location = new System.Drawing.Point(99, 285);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(72, 29);
@@ -102,7 +109,7 @@ namespace HitBloqCommandGenerator
             // 
             this.checkBox2.AutoSize = true;
             this.checkBox2.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.checkBox2.ForeColor = System.Drawing.SystemColors.HotTrack;
+            this.checkBox2.ForeColor = System.Drawing.Color.Cyan;
             this.checkBox2.Location = new System.Drawing.Point(99, 250);
             this.checkBox2.Name = "checkBox2";
             this.checkBox2.Size = new System.Drawing.Size(101, 29);
@@ -116,7 +123,7 @@ namespace HitBloqCommandGenerator
             // 
             this.checkBox3.AutoSize = true;
             this.checkBox3.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.checkBox3.ForeColor = System.Drawing.Color.Coral;
+            this.checkBox3.ForeColor = System.Drawing.Color.Orange;
             this.checkBox3.Location = new System.Drawing.Point(99, 217);
             this.checkBox3.Name = "checkBox3";
             this.checkBox3.Size = new System.Drawing.Size(79, 29);
@@ -130,7 +137,7 @@ namespace HitBloqCommandGenerator
             // 
             this.checkBox4.AutoSize = true;
             this.checkBox4.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.checkBox4.ForeColor = System.Drawing.Color.DarkRed;
+            this.checkBox4.ForeColor = System.Drawing.Color.Tomato;
             this.checkBox4.Location = new System.Drawing.Point(99, 186);
             this.checkBox4.Name = "checkBox4";
             this.checkBox4.Size = new System.Drawing.Size(93, 29);
@@ -144,7 +151,7 @@ namespace HitBloqCommandGenerator
             // 
             this.checkBox5.AutoSize = true;
             this.checkBox5.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.checkBox5.ForeColor = System.Drawing.Color.DarkOrchid;
+            this.checkBox5.ForeColor = System.Drawing.Color.Violet;
             this.checkBox5.Location = new System.Drawing.Point(99, 151);
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.Size = new System.Drawing.Size(106, 29);
@@ -156,20 +163,25 @@ namespace HitBloqCommandGenerator
             // 
             // button2
             // 
+            this.button2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
+            this.button2.Cursor = System.Windows.Forms.Cursors.Hand;
             this.button2.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button2.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.button2.Location = new System.Drawing.Point(0, 339);
+            this.button2.ForeColor = System.Drawing.Color.White;
+            this.button2.Location = new System.Drawing.Point(0, 345);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(549, 55);
+            this.button2.Size = new System.Drawing.Size(572, 68);
             this.button2.TabIndex = 6;
             this.button2.Text = "Next Map";
-            this.button2.UseVisualStyleBackColor = true;
+            this.button2.UseVisualStyleBackColor = false;
             this.button2.Click += new System.EventHandler(this.button1_Click);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.label2.ForeColor = System.Drawing.Color.White;
             this.label2.Location = new System.Drawing.Point(27, 125);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(56, 25);
@@ -223,7 +235,11 @@ namespace HitBloqCommandGenerator
             // 
             // comboBox1
             // 
+            this.comboBox1.BackColor = System.Drawing.SystemColors.Window;
+            this.comboBox1.DropDownHeight = 212;
+            this.comboBox1.DropDownWidth = 302;
             this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.IntegralHeight = false;
             this.comboBox1.Location = new System.Drawing.Point(375, 153);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(151, 28);
@@ -234,15 +250,28 @@ namespace HitBloqCommandGenerator
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.label3.ForeColor = System.Drawing.Color.White;
             this.label3.Location = new System.Drawing.Point(375, 125);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(131, 25);
             this.label3.TabIndex = 8;
             this.label3.Text = "Characteristic:";
             // 
+            // labelMapHash
+            // 
+            this.labelMapHash.AutoSize = true;
+            this.labelMapHash.Font = new System.Drawing.Font("Segoe UI", 8, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.labelMapHash.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(242)))), ((int)(((byte)(250)))), ((int)(((byte)(90)))));
+            this.labelMapHash.Location = new System.Drawing.Point(195, 29);
+            this.labelMapHash.Name = "labelMapHash";
+            this.labelMapHash.Size = new System.Drawing.Size(0, 20);
+            this.labelMapHash.TabIndex = 5;
+            // 
             // MapCycle
             // 
-            this.ClientSize = new System.Drawing.Size(549, 394);
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(24)))), ((int)(((byte)(24)))), ((int)(((byte)(24)))));
+            this.ClientSize = new System.Drawing.Size(572, 413);
+            this.Controls.Add(this.labelMapHash);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.numericUpDown5);
@@ -285,8 +314,9 @@ namespace HitBloqCommandGenerator
             characteristicIndex = 0;
             if (selectionIndex < mapData.Count - 1)
             {
-                currentSelection = getInitialSelectionFromMapData(mapData[selectionIndex]);
                 selectionIndex++;
+                currentSelection = getInitialSelectionFromMapData(mapData[selectionIndex]);
+                reset();
                 showMap(mapData[selectionIndex]);
                 comboBox1.Items.Clear();
                 mapData[selectionIndex].versions[0].getDiffsByCharacteristic().ForEach(characteristic =>
@@ -294,7 +324,6 @@ namespace HitBloqCommandGenerator
                     comboBox1.Items.Add(characteristic.name);
                 });
 
-                reset();
                 return;
             }
 
@@ -318,12 +347,45 @@ namespace HitBloqCommandGenerator
         private MapSelection getInitialSelectionFromMapData(MapData data)
         {
             MapSelection initialSelection = new MapSelection();
+            List<Difficulty> highlightedDiffs = new List<Difficulty>();
+            if (highlightedDifficultyData.ContainsKey(data.versions[0].hash.ToUpper()))
+            {
+                highlightedDiffs = highlightedDifficultyData[data.versions[0].hash.ToUpper()];
+            }
             data.versions[0].getDiffsByCharacteristic()
                 .ConvertAll(diff => diff.name)
                 .ForEach(characteristicName =>
             {
                 MapSelectionCharacteristic mapSelectionCharacteristic = new MapSelectionCharacteristic();
                 mapSelectionCharacteristic.name = characteristicName;
+
+                foreach (Difficulty highlightedDiff in highlightedDiffs)
+                {
+                    if (characteristicName.Equals(highlightedDiff.Characteristic))
+                    {
+                        if (highlightedDiff.Name.ToLower().Equals("easy"))
+                        {
+                            mapSelectionCharacteristic.easy = true;
+                        }
+                        if (highlightedDiff.Name.ToLower().Equals("normal"))
+                        {
+                            mapSelectionCharacteristic.normal = true;
+                        }
+                        if (highlightedDiff.Name.ToLower().Equals("hard"))
+                        {
+                            mapSelectionCharacteristic.hard = true;
+                        }
+                        if (highlightedDiff.Name.ToLower().Equals("expert"))
+                        {
+                            mapSelectionCharacteristic.expert = true;
+                        }
+                        if (highlightedDiff.Name.ToLower().Equals("expertplus"))
+                        {
+                            mapSelectionCharacteristic.expertPlus = true;
+                        }
+                        break;
+                    }
+                }
                 initialSelection.characteristics.Add(mapSelectionCharacteristic);
             });
             return initialSelection;
@@ -334,6 +396,8 @@ namespace HitBloqCommandGenerator
             linkLabel1.Text = map.name;
             linkLabel1.Links.Clear();
             linkLabel1.Links.Add(0, map.name.Length, "https://beatsaver.com/maps/" + map.id);
+
+            labelMapHash.Text = map.versions[0].hash.ToUpper();
 
             List<MapCharacteristic> diffsByCharacteristic = map.versions[0].getDiffsByCharacteristic();
             checkBox1.Visible = diffsByCharacteristic[characteristicIndex].hasDiff("Easy");

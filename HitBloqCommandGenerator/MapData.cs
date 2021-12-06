@@ -40,7 +40,6 @@ namespace HitBloqCommandGenerator
             List<MapCharacteristic> values = new List<MapCharacteristic>(); // No idea how to do it better
             foreach (KeyValuePair<string, MapCharacteristic> entry in diffsByCharacteristic)
             {
-                System.Diagnostics.Debug.WriteLine(entry.Value.name);
                 values.Add(entry.Value);
             }
             return values;
